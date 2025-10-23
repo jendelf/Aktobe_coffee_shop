@@ -2,18 +2,20 @@ import requests
 import json
 import re
 from requests.auth import HTTPBasicAuth
-from pathlib import Path
+from core.paths import CONFIG, JSON_FILES
 
-with open("config.json", "r", encoding="utf-8") as f:
-    CONFIG = json.load(f)
+with CONFIG.open("r", encoding= "utf-8") as f:
+    config = json.load(f)
 
-LAYER_NAME = CONFIG["LAYER_NAME"]
-USERNAME = CONFIG["USERNAME"]
-PASSWORD = CONFIG["PASSWORD"]
-TELEGRAM_BOT_TOKEN = CONFIG.get("TELEGRAM_BOT_TOKEN")
-LIMIT = CONFIG.get("LIMIT", 100)
-OFFSET = CONFIG.get("OFFSET", 0)
-MENU_MESSAGE = CONFIG.get("MENU_MESSAGE")
+CRM_TO_TG_FILE = JSON_FILES["crm_to_telegram"]
+CUSTOMERS_FILE = JSON_FILES["customers"]
+CONTACTS_FILE = JSON_FILES["contacts"]
+
+LAYER_NAME = config["LAYER_NAME"]
+USERNAME = config["USERNAME"]
+PASSWORD = config["PASSWORD"]
+LIMIT = config.get("LIMIT", 100)
+OFFSET = config.get("OFFSET", 0)
 
 URL = f"https://{LAYER_NAME}.quickresto.ru/platform/online/api/list?moduleName=crm.customer&className=ru.edgex.quickresto.modules.crm.customer.CrmCustomer"
 
@@ -25,16 +27,14 @@ headers = {
 payload = {"limit": LIMIT, "offset": OFFSET, "filters": []}
 params = {"sortFields": ["name"], "sortOrders": ["asc"]}
 
-CUSTOMERS_FILE = Path("customers.json")
-CONTACTS_FILE = Path("contacts.json")
-
 # Получаем клиентов из CRM
 response = requests.get(
     URL,
     auth=HTTPBasicAuth(USERNAME, PASSWORD),
     headers=headers,
     params=params,
-    json=payload
+    json=payload,
+    timeout=10
 )
 
 if response.status_code != 200:
@@ -50,12 +50,11 @@ with open(CUSTOMERS_FILE, "w", encoding="utf-8") as f:
 
 
 # парсим контакты из комента
-def extract_contact_from_comment(comment: str):
+def extract_contact_from_comment(comment: str) -> str | None:
     if not comment:
-        return None, None
+        return None
 
     telegram = None
-
     match_tg = re.search(r"(?:@|t\.me/|https://t\.me/)([A-Za-z0-9_]{5,})", comment)
     if match_tg:
         telegram = match_tg.group(1)
@@ -85,5 +84,5 @@ for customer in customers:
 with open(CONTACTS_FILE, "w", encoding="utf-8") as f:
     json.dump(contacts, f, ensure_ascii=False, indent=2)
 
-with open("crm_to_telegram.json", "w", encoding="utf-8") as f:
+with CRM_TO_TG_FILE.open("w", encoding="utf-8") as f:
     json.dump(crm_to_tg, f, ensure_ascii=False, indent=2)
