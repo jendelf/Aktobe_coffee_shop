@@ -17,7 +17,7 @@ PASSWORD = config["PASSWORD"]
 LIMIT = config.get("LIMIT", 100)
 OFFSET = config.get("OFFSET", 0)
 
-URL = f"https://{LAYER_NAME}.quickresto.ru/platform/online/api/list?moduleName=crm.customer&className=ru.edgex.quickresto.modules.crm.customer.CrmCustomer"
+URL = f"https://{LAYER_NAME}.quickresto.ru/platform/online/api/list?moduleName=crm.accounting.account.type&className=ru.edgex.quickresto.modules.crm.accounting.account.type.CustomerAccountType"
 
 headers = {
     "Content-Type": "application/json",

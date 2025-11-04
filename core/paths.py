@@ -5,5 +5,5 @@ DATA_DIR = BASE_DIR / "data"
 
 CONFIG = BASE_DIR / "core" / "config.json"
 
-MENU_FILE_PATH = DATA_DIR / "menu1.png"
+MENU_FILE_PATH = BASE_DIR / "menus"
 JSON_FILES = {f.stem: f for f in (DATA_DIR).glob("*.json")}
